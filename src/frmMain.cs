@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Net;
+using System.Net.Http;
 using System.Net.Sockets;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -33,6 +34,30 @@ namespace LOIC
 		private string channel;
 		private bool ircenabled = false;
 		private Dictionary<string, string> OpList;
+
+		// HttpClient instances for the Overlord remote control (replace WebRequest/WebClient).
+		// OverLordClient follows redirects and carries the user agent for the page GET;
+		// OverLordHeadClient issues a redirect-less HEAD to resolve a shortened URL.
+		private static readonly HttpClient OverLordClient = CreateOverLordClient();
+		private static readonly HttpClient OverLordHeadClient = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false });
+
+		private static HttpClient CreateOverLordClient()
+		{
+			HttpClient client = new HttpClient();
+			client.DefaultRequestHeaders.Add("user-agent", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.0)"); // who knows at which door we are knocking o_O
+			return client;
+		}
+
+		private static string DownloadOverLordString(string url)
+		{
+			using (HttpResponseMessage response = OverLordClient.Send(new HttpRequestMessage(HttpMethod.Get, url)))
+			{
+				response.EnsureSuccessStatusCode();
+				using (System.IO.StreamReader reader = new System.IO.StreamReader(response.Content.ReadAsStream()))
+					return reader.ReadToEnd();
+			}
+		}
+
 		private delegate void CheckParamsDelegate(List<string> pars);
 
 		/// <summary>
@@ -1352,19 +1377,20 @@ namespace LOIC
 			MatchCollection matches = Regex.Matches(url, rxpc, RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.ECMAScript);
 			if (matches.Count == 0)
 			{
-#pragma warning disable SYSLIB0014 // WebRequest kept intentionally; HttpClient migration deferred until it can be runtime-tested
-				HttpWebRequest wreq = (HttpWebRequest)WebRequest.Create(url);
-#pragma warning restore SYSLIB0014
-				wreq.AllowAutoRedirect = false;
-				wreq.Method = WebRequestMethods.Http.Head;
 				try
 				{
-					HttpWebResponse response = (HttpWebResponse)wreq.GetResponse();
-					MatchCollection match = Regex.Matches(response.Headers.Get("Location"), rxpc, RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.ECMAScript);
-					response.Close();
-					if (match.Count > 0)
+					using (HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Head, url))
+					using (HttpResponseMessage response = OverLordHeadClient.Send(request))
 					{
-						ret = parseOLUrlCmd(match[0].Groups[2].Captures, match[0].Groups[3].Captures);
+						string location = null;
+						IEnumerable<string> locationValues;
+						if (response.Headers.TryGetValues("Location", out locationValues))
+							location = string.Join("", locationValues);
+						MatchCollection match = Regex.Matches(location ?? "", rxpc, RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.ECMAScript);
+						if (match.Count > 0)
+						{
+							ret = parseOLUrlCmd(match[0].Groups[2].Captures, match[0].Groups[3].Captures);
+						}
 					}
 				}
 				catch
@@ -1386,10 +1412,6 @@ namespace LOIC
 			tCheckOL.Stop();
 			if (enabled)
 			{
-#pragma warning disable SYSLIB0014 // WebClient kept intentionally; HttpClient migration deferred until it can be runtime-tested
-				WebClient client = new WebClient();
-#pragma warning restore SYSLIB0014
-				client.Headers.Add("user-agent", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.0)"); // who knows at which door we are knocking o_O
 				try
 				{
 					labelOLStatus.Text = "connecting...";
@@ -1401,7 +1423,7 @@ namespace LOIC
 					{
 						try
 						{
-							string sResp = client.DownloadString(textOLServer.Text);
+							string sResp = DownloadOverLordString(textOLServer.Text);
 							labelOLStatus.Text = "processing...";
 							string rxpa = "(\\[LOIC\\]\\s*(<[^>]*>)*\\s*(@?(\\S+)\\s*[:]\\s*([^<@\\n\\r\\t]+)\\s*@?\\s*(<[^>]*>[^<@\\n\\r\\t]*)*\\s*)+\\s*(<[^>]*>)*\\s*\\[/LOIC\\]|class=\"LO (tar|bu)\\s*(r)?\" href=\"([^\"]*)\"|LOIC: http://(\\S+))+";
 							MatchCollection matches = Regex.Matches(sResp, rxpa, RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.ECMAScript);
@@ -1488,10 +1510,6 @@ namespace LOIC
 						enabled = false;
 						disableHive.Checked = true;
 					}
-				}
-				finally
-				{
-					client.Dispose();
 				}
 				if (enabled)
 					tCheckOL.Start();
