@@ -5,6 +5,12 @@
 - Commit-Messages werden **ausschließlich auf Englisch** geschrieben.
 - Kurze, präzise Zusammenfassung in der Betreffzeile, bei Bedarf ein erklärender Body.
 
+## Zeichensetzung
+
+- **Keine Geviert- oder Halbgeviertstriche** (Em-Dash `—`, En-Dash `–`) verwenden, weder in
+  Texten, Commit-Messages, Code-Kommentaren noch in Dokumentation.
+- Stattdessen normalen Bindestrich, Komma, Doppelpunkt, Klammern oder einen eigenen Satz nutzen.
+
 ## Deutsche Texte
 
 - In deutschsprachigen Texten (Dokumentation, Kommentare, Chat-Antworten) immer **echte Umlaute
