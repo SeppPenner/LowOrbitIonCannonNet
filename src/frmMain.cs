@@ -814,9 +814,9 @@ namespace LOIC
 		{
 			try
 			{
-				// Kooperatives Beenden statt irclisten.Abort() (auf modernem .NET nicht
-				// unterstuetzt): ircenabled abschalten und Disconnect() aufrufen, das den
-				// blockierenden irc.Listen()-Aufruf beendet; der Listen-Thread laeuft aus.
+				// Cooperative shutdown instead of irclisten.Abort() (not supported on modern
+				// .NET): clear ircenabled and call Disconnect(), which ends the blocking
+				// irc.Listen() call; the listen thread then runs out.
 				ircenabled = false;
 				if (irc != null) irc.Disconnect();
 			}

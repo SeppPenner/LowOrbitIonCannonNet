@@ -8,7 +8,7 @@
     <ImplicitUsings>disable</ImplicitUsings>
     <Nullable>disable</Nullable>
 
-    <!-- Assembly-Metadaten, migriert aus dem frueheren Properties/AssemblyInfo.cs -->
+    <!-- Assembly metadata migrated from the former Properties/AssemblyInfo.cs -->
     <AssemblyTitle>SmartIrc4net</AssemblyTitle>
     <Description>IRC library for the .NET Framework</Description>
     <Company>qNETp</Company>

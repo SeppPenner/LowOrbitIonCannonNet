@@ -809,8 +809,8 @@ namespace Meebey.SmartIrc4net
             /// </summary>
             public void Stop()
             {
-                // Kooperatives Beenden: den im ReadLine() blockierenden Worker durch
-                // Schliessen des Readers aufwecken, danach beendet er sich selbst.
+                // Cooperative shutdown: wake the worker blocked in ReadLine() by closing
+                // the reader; it then exits on its own.
                 try {
                     _Connection._Reader.Close();
                 } catch (ObjectDisposedException) {
@@ -838,7 +838,7 @@ namespace Meebey.SmartIrc4net
                 } catch (IOException) {
 #endif
                 } catch (ObjectDisposedException) {
-                    // Reader wurde von Stop() geschlossen, um den blockierenden Read zu beenden.
+                    // The reader was closed by Stop() to unblock the pending read.
                 } finally {
 #if LOG4NET
                     Logger.Socket.Warn("connection lost");
@@ -893,8 +893,8 @@ namespace Meebey.SmartIrc4net
             /// </summary>
             public void Stop()
             {
-                // Kooperatives Beenden: der Worker verlaesst seine Schleife, sobald
-                // IsConnected false ist; das Schliessen des Writers bricht laufende Sends ab.
+                // Cooperative shutdown: the worker leaves its loop once IsConnected turns
+                // false; closing the writer aborts an in-flight send.
                 try {
                     _Connection._Writer.Close();
                 } catch (ObjectDisposedException) {
@@ -918,7 +918,7 @@ namespace Meebey.SmartIrc4net
                 } catch (IOException) {
 #endif
                 } catch (ObjectDisposedException) {
-                    // Writer wurde von Stop() geschlossen.
+                    // The writer was closed by Stop().
                 } finally {
 #if LOG4NET
                     Logger.Socket.Warn("connection lost");
@@ -1109,8 +1109,8 @@ namespace Meebey.SmartIrc4net
             /// </summary>
             public void Stop()
             {
-                // Kooperatives Beenden: der Worker verlaesst seine Schleife, sobald
-                // IsConnected false ist. (Diese Methode wird aktuell nicht aufgerufen.)
+                // Cooperative shutdown: the worker leaves its loop once IsConnected turns
+                // false. (This method is currently never called.)
             }
 
             private void _Worker()
@@ -1143,7 +1143,7 @@ namespace Meebey.SmartIrc4net
                        Thread.Sleep(_Connection._IdleWorkerInterval);
                    }
                 } catch (NotConnectedException) {
-                    // Verbindung wurde abgebaut, waehrend gerade ein Ping gesendet werden sollte.
+                    // The connection was torn down while a ping was about to be sent.
                 }
             }
         }

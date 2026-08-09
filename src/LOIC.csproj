@@ -12,11 +12,11 @@
     <ImplicitUsings>disable</ImplicitUsings>
     <Nullable>disable</Nullable>
 
-    <!-- Die resx-Dateien enthalten noch BinaryFormatter-serialisierte Bitmaps.
-         Der Build reicht diese als vorserialisierte Ressourcen durch. -->
+    <!-- The resx files still carry BinaryFormatter-serialized bitmaps. The build passes
+         them through as preserialized resources. -->
     <GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
 
-    <!-- Assembly-Metadaten, migriert aus dem frueheren Properties/AssemblyInfo.cs -->
+    <!-- Assembly metadata migrated from the former Properties/AssemblyInfo.cs -->
     <AssemblyTitle>Low Orbit Ion Cannon</AssemblyTitle>
     <Description>TCP/IP stress-test tool</Description>
     <Product>Low Orbit Ion Cannon</Product>
@@ -27,9 +27,8 @@
     <Version>2.9.9.99</Version>
   </PropertyGroup>
 
-  <!-- Das LOIC-Projekt liegt in src/, das IRC-Projekt in src/IRC/. Den IRC-Unterbaum
-       aus den Default-Globs des SDK herausnehmen, damit seine Dateien nicht doppelt
-       kompiliert werden. -->
+  <!-- The LOIC project lives in src/, the IRC project in src/IRC/. Exclude the IRC
+       subtree from the SDK default globs so its files are not compiled twice. -->
   <ItemGroup>
     <Compile Remove="IRC\**" />
     <EmbeddedResource Remove="IRC\**" />
