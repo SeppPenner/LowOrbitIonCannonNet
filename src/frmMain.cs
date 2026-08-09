@@ -1352,7 +1352,9 @@ namespace LOIC
 			MatchCollection matches = Regex.Matches(url, rxpc, RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.ECMAScript);
 			if (matches.Count == 0)
 			{
+#pragma warning disable SYSLIB0014 // WebRequest kept intentionally; HttpClient migration deferred until it can be runtime-tested
 				HttpWebRequest wreq = (HttpWebRequest)WebRequest.Create(url);
+#pragma warning restore SYSLIB0014
 				wreq.AllowAutoRedirect = false;
 				wreq.Method = WebRequestMethods.Http.Head;
 				try
@@ -1384,7 +1386,9 @@ namespace LOIC
 			tCheckOL.Stop();
 			if (enabled)
 			{
+#pragma warning disable SYSLIB0014 // WebClient kept intentionally; HttpClient migration deferred until it can be runtime-tested
 				WebClient client = new WebClient();
+#pragma warning restore SYSLIB0014
 				client.Headers.Add("user-agent", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.0)"); // who knows at which door we are knocking o_O
 				try
 				{
