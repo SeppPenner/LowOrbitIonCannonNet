@@ -822,7 +822,7 @@ namespace Meebey.SmartIrc4net
 #if LOG4NET
                 Logger.Socket.Debug("ReadThread started");
 #endif
-                string data = "";
+                string data = string.Empty;
                 try {
                     while (_Connection.IsConnected &&
                            ((data = _Connection._Reader.ReadLine()) != null)) {
