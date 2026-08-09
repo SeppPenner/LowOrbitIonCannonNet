@@ -809,7 +809,8 @@ namespace Meebey.SmartIrc4net
             /// </summary>
             public void Stop()
             {
-                _Thread.Abort();
+                // Kooperatives Beenden: den im ReadLine() blockierenden Worker durch
+                // Schliessen des Readers aufwecken, danach beendet er sich selbst.
                 try {
                     _Connection._Reader.Close();
                 } catch (ObjectDisposedException) {
@@ -821,33 +822,28 @@ namespace Meebey.SmartIrc4net
 #if LOG4NET
                 Logger.Socket.Debug("ReadThread started");
 #endif
+                string data = "";
                 try {
-                    string data = "";
-                    try {
-                        while (_Connection.IsConnected &&
-                               ((data = _Connection._Reader.ReadLine()) != null)) {
-                            _Queue.Enqueue(data);
+                    while (_Connection.IsConnected &&
+                           ((data = _Connection._Reader.ReadLine()) != null)) {
+                        _Queue.Enqueue(data);
 #if LOG4NET
-                            Logger.Socket.Debug("received: \""+data+"\"");
+                        Logger.Socket.Debug("received: \""+data+"\"");
 #endif
-                        }
-#if LOG4NET
-                    } catch (IOException e) {
-                        Logger.Socket.Warn("IOException: "+e.Message);
-#else
-                    } catch (IOException) {
-#endif
-                    } finally {
-#if LOG4NET
-                        Logger.Socket.Warn("connection lost");
-#endif
-                        _Connection.IsConnectionError = true;
                     }
-                } catch (ThreadAbortException) {
-                    Thread.ResetAbort();
 #if LOG4NET
-                    Logger.Socket.Debug("ReadThread aborted");
+                } catch (IOException e) {
+                    Logger.Socket.Warn("IOException: "+e.Message);
+#else
+                } catch (IOException) {
 #endif
+                } catch (ObjectDisposedException) {
+                    // Reader wurde von Stop() geschlossen, um den blockierenden Read zu beenden.
+                } finally {
+#if LOG4NET
+                    Logger.Socket.Warn("connection lost");
+#endif
+                    _Connection.IsConnectionError = true;
                 }
             }
         }
@@ -897,7 +893,8 @@ namespace Meebey.SmartIrc4net
             /// </summary>
             public void Stop()
             {
-                _Thread.Abort();
+                // Kooperatives Beenden: der Worker verlaesst seine Schleife, sobald
+                // IsConnected false ist; das Schliessen des Writers bricht laufende Sends ab.
                 try {
                     _Connection._Writer.Close();
                 } catch (ObjectDisposedException) {
@@ -910,28 +907,23 @@ namespace Meebey.SmartIrc4net
                 Logger.Socket.Debug("WriteThread started");
 #endif
                 try {
-                    try {
-                        while (_Connection.IsConnected) {
-                            _CheckBuffer();
-                            Thread.Sleep(_Connection._SendDelay);
-                        }
-#if LOG4NET
-                    } catch (IOException e) {
-                        Logger.Socket.Warn("IOException: "+e.Message);
-#else
-                    } catch (IOException) {
-#endif
-                    } finally {
-#if LOG4NET
-                        Logger.Socket.Warn("connection lost");
-#endif
-                        _Connection.IsConnectionError = true;
+                    while (_Connection.IsConnected) {
+                        _CheckBuffer();
+                        Thread.Sleep(_Connection._SendDelay);
                     }
-                } catch (ThreadAbortException) {
-                    Thread.ResetAbort();
 #if LOG4NET
-                    Logger.Socket.Debug("WriteThread aborted");
+                } catch (IOException e) {
+                    Logger.Socket.Warn("IOException: "+e.Message);
+#else
+                } catch (IOException) {
 #endif
+                } catch (ObjectDisposedException) {
+                    // Writer wurde von Stop() geschlossen.
+                } finally {
+#if LOG4NET
+                    Logger.Socket.Warn("connection lost");
+#endif
+                    _Connection.IsConnectionError = true;
                 }
             }
 
@@ -1117,7 +1109,8 @@ namespace Meebey.SmartIrc4net
             /// </summary>
             public void Stop()
             {
-                _Thread.Abort();
+                // Kooperatives Beenden: der Worker verlaesst seine Schleife, sobald
+                // IsConnected false ist. (Diese Methode wird aktuell nicht aufgerufen.)
             }
 
             private void _Worker()
@@ -1149,11 +1142,8 @@ namespace Meebey.SmartIrc4net
                        }
                        Thread.Sleep(_Connection._IdleWorkerInterval);
                    }
-                } catch (ThreadAbortException) {
-                    Thread.ResetAbort();
-#if LOG4NET
-                    Logger.Socket.Debug("IdleWorkerThread aborted");
-#endif
+                } catch (NotConnectedException) {
+                    // Verbindung wurde abgebaut, waehrend gerade ein Ping gesendet werden sollte.
                 }
             }
         }
