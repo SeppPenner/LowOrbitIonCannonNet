@@ -10,9 +10,9 @@ auf **.NET 10** heben und sauber bauen lassen.
 
 ## 0. Umsetzungsstand (2026-08-09)
 
-Die Migration ist code-seitig umgesetzt und committet (Branch `main`, noch nicht gepusht).
-Der C#-Compile beider Projekte ist grün; IRC baut warnungsfrei. Blockiert sind nur der
-volle Build zur `LOIC.exe` und der Laufzeittest, siehe unten.
+Die Migration ist umgesetzt und committet (Branch `main`, noch nicht gepusht). Der volle
+`dotnet build` ist grün (0 Fehler, 0 Warnungen), `LOIC.exe` wird erzeugt und startet, und
+die Laufzeitrisiken sind per nicht-interaktivem Test abgedeckt, siehe unten.
 
 ### Erledigt (jeweils eigener Commit)
 
@@ -32,25 +32,31 @@ volle Build zur `LOIC.exe` und der Laufzeittest, siehe unten.
 - Alle Code- und Projektdatei-Kommentare auf Englisch (inklusive vorbestehender deutscher
   Designer-Kommentare in `frmEZGrab.Designer.cs`).
 
-### Blockiert: voller Build und Laufzeittest (Windows Defender)
+### Schritt 5 + 6: Build und Laufzeittest (erledigt)
 
-`LOIC.dll` wird bei jedem Build als `HackTool:Win32/Oylecann.A` (Threat-ID 2147641076) in
-Quarantäne verschoben, bevor der `CreateAppHost`-Schritt sie zur `LOIC.exe` bündeln kann.
-C#-Compile und resx-Ressourcen (inklusive der BinaryFormatter-Bitmaps) bauen bereits
-erfolgreich; nur das Erzeugen der lauffähigen EXE scheitert.
+`LOIC.dll` wurde zuvor bei jedem Build als `HackTool:Win32/Oylecann.A` (Threat-ID
+2147641076) von Windows Defender in Quarantäne verschoben, bevor der `CreateAppHost`-Schritt
+sie zur `LOIC.exe` bündeln konnte. Nach Setzen einer Defender-Ausnahme baut die Solution
+grün (0 Fehler, 0 Warnungen) und erzeugt `LOIC.exe`.
 
-- Schritt 5 (voller `dotnet build` grün inkl. `LOIC.exe`) und Schritt 6 (Laufzeittest)
-  brauchen eine Defender-Ausnahme (Admin), z. B. für `src/bin` und `src/obj`.
+Nicht-interaktiver Laufzeittest:
+- Startlauf `LOIC.exe /hidden`: Prozess startet und läuft stabil, kein Absturz beim Aufbau
+  von `frmMain` (InitializeComponent, Settings-Read, Konami-Check).
+- resx-Bitmaps (2.6): die tatsächlich genutzten Bilder (`Properties.Resources`: LOIC
+  184x463, WTF 416x300, Icon 32x32) deserialisieren zur Laufzeit über den
+  preserialized-Pfad einwandfrei. Das in allen fünf resx vorhandene `Bitmap1` wird nirgends
+  im Code referenziert, fällt beim Build weg und ist damit ohne Belang.
+- ConfigurationManager (2.7): der `Settings.UpdateSetting`/`ReadSetting`-Roundtrip über
+  `OpenExeConfiguration` persistiert und liest korrekt zurück.
 
-### Noch per Laufzeittest zu verifizieren ("baut grün" deckt das nicht ab)
+### Noch offen (braucht echte externe Verbindungen/Interaktion)
 
-- resx-Bitmaps (2.6): lädt WinForms die BinaryFormatter-`Bitmap1` zur Laufzeit? (EULA-/
-  Main-/EZGrab-/Wtf-Form öffnen).
-- ConfigurationManager-Schreibpfad (2.7): persistieren `AcceptEULA`/`KonaniCode` in die
-  `LOIC.dll.config`? (`Settings.cs` `OpenExeConfiguration`).
-- IRC Thread-Stop (2.4): kooperativer ReadThread-Abbruch an einer echten IRC-Verbindung
-  (Hivemind).
-- `Process.Start` (2.5): GitHub-Link / `help.chm` / EZGrab-URL öffnen über die Shell.
+- IRC Thread-Stop (2.4): der kooperative ReadThread-Abbruch ist noch nicht an einer echten
+  IRC-Verbindung (Hivemind) getestet; das Code-Review stützt die Änderung, ein Live-Test
+  steht aus.
+- `Process.Start` (2.5): `UseShellExecute = true` ist der dokumentierte Standard-Fix, das
+  tatsächliche Öffnen von GitHub-Link / `help.chm` / EZGrab-URL wurde nicht interaktiv
+  geklickt.
 
 ### Offen/optional
 
