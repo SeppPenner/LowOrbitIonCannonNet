@@ -1067,7 +1067,7 @@ namespace LOIC
 		/// <param name="e">EventArgs.</param>
 		private void label24_Click(object sender, EventArgs e)
 		{
-			Process.Start("https://github.com/NewEraCracker/LOIC");
+			Process.Start(new ProcessStartInfo("https://github.com/NewEraCracker/LOIC") { UseShellExecute = true });
 		}
 
 		/// <summary>
@@ -1561,7 +1561,7 @@ namespace LOIC
 					e.Handled = true;
 					break;
 				case Keys.F1:
-					try { Process.Start("help.chm"); }
+					try { Process.Start(new ProcessStartInfo("help.chm") { UseShellExecute = true }); }
 					catch { Wtf("Error 404 - Help Not Found", bIsHidden); }
 					break;
 			}

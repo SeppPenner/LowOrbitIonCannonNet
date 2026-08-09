@@ -43,7 +43,7 @@ namespace LOIC
 				turl = "http://is.gd/create.php?longurl=";
 			}
 			turl += Uri.EscapeDataString(txtOverlord.Text);
-			System.Diagnostics.Process.Start(turl);
+			System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(turl) { UseShellExecute = true });
 		}
 		private void btnCancel_Click(object sender, EventArgs e)
 		{
