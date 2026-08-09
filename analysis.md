@@ -1,10 +1,62 @@
 # Migrationsanalyse: LOIC von .NET Framework 2.0 auf .NET 10
 
-Stand: 2026-08-09. Diese Datei ist reine Analyse. Es wurde noch nichts geaendert
-und nichts committet.
+Stand: 2026-08-09. Der Umsetzungsstand steht direkt unter dieser Einleitung; der
+Analyseteil ab Abschnitt 1 dokumentiert den ursprünglichen Plan.
 
 Ziel: Beide Projekte der Solution von .NET Framework 2.0 (altes Non-SDK-csproj-Format)
 auf **.NET 10** heben und sauber bauen lassen.
+
+---
+
+## 0. Umsetzungsstand (2026-08-09)
+
+Die Migration ist code-seitig umgesetzt und committet (Branch `main`, noch nicht gepusht).
+Der C#-Compile beider Projekte ist grün; IRC baut warnungsfrei. Blockiert sind nur der
+volle Build zur `LOIC.exe` und der Laufzeittest, siehe unten.
+
+### Erledigt (jeweils eigener Commit)
+
+- IRC auf SDK-Style/`net10.0`, log4net entfernt, AssemblyInfo migriert, feste Version
+  0.4.0.0.
+- `Thread.Abort()` durch kooperatives Beenden ersetzt: 3x in `IrcConnection.cs`
+  (Read-/Write-/IdleWorkerThread) plus eine von der Analyse übersehene 4. Stelle in
+  `frmMain.cs` (IRC-Listen-Thread, beendet über `ircenabled` + `Disconnect()`).
+- LOIC auf SDK-Style/`net10.0-windows` + `UseWindowsForms`; IRC-Unterbaum aus den
+  Default-Globs ausgeschlossen; AssemblyInfo migriert.
+- `Process.Start` an 3 Stellen auf `UseShellExecute = true`; `<startup>`-Block aus
+  `app.config` entfernt.
+- Aufräumarbeiten: redundante PackageReferences entfernt (NU1510); obsolete
+  Serialisierungs-Ctoren aus den IRC-Exceptions entfernt (SYSLIB0051); SYSLIB0014 an den
+  Overlord-Webaufrufen gezielt per `#pragma` unterdrückt; `LOIC.sln` auf Format 12.00
+  angehoben; `LOIC.userprefs` entfernt.
+- Alle Code- und Projektdatei-Kommentare auf Englisch (inklusive vorbestehender deutscher
+  Designer-Kommentare in `frmEZGrab.Designer.cs`).
+
+### Blockiert: voller Build und Laufzeittest (Windows Defender)
+
+`LOIC.dll` wird bei jedem Build als `HackTool:Win32/Oylecann.A` (Threat-ID 2147641076) in
+Quarantäne verschoben, bevor der `CreateAppHost`-Schritt sie zur `LOIC.exe` bündeln kann.
+C#-Compile und resx-Ressourcen (inklusive der BinaryFormatter-Bitmaps) bauen bereits
+erfolgreich; nur das Erzeugen der lauffähigen EXE scheitert.
+
+- Schritt 5 (voller `dotnet build` grün inkl. `LOIC.exe`) und Schritt 6 (Laufzeittest)
+  brauchen eine Defender-Ausnahme (Admin), z. B. für `src/bin` und `src/obj`.
+
+### Noch per Laufzeittest zu verifizieren ("baut grün" deckt das nicht ab)
+
+- resx-Bitmaps (2.6): lädt WinForms die BinaryFormatter-`Bitmap1` zur Laufzeit? (EULA-/
+  Main-/EZGrab-/Wtf-Form öffnen).
+- ConfigurationManager-Schreibpfad (2.7): persistieren `AcceptEULA`/`KonaniCode` in die
+  `LOIC.dll.config`? (`Settings.cs` `OpenExeConfiguration`).
+- IRC Thread-Stop (2.4): kooperativer ReadThread-Abbruch an einer echten IRC-Verbindung
+  (Hivemind).
+- `Process.Start` (2.5): GitHub-Link / `help.chm` / EZGrab-URL öffnen über die Shell.
+
+### Offen/optional
+
+- HttpClient-Migration statt WebRequest/WebClient (SYSLIB0014 ist aktuell nur unterdrückt),
+  sinnvoll erst wenn laufzeit-testbar.
+- Ein echter Flood-Lauf wird bewusst nicht gegen Fremd-Hosts ausgeführt.
 
 ---
 
