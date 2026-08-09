@@ -25,8 +25,9 @@ runtime risks are covered by non-interactive tests, see below.
 - `Process.Start` at 3 spots switched to `UseShellExecute = true`; `<startup>` block removed
   from `app.config`.
 - Cleanups: redundant PackageReferences removed (NU1510); obsolete serialization constructors
-  removed from the IRC exceptions (SYSLIB0051); SYSLIB0014 suppressed with a scoped `#pragma`
-  around the Overlord web calls; `LOIC.sln` raised to format 12.00; `LOIC.userprefs` removed.
+  removed from the IRC exceptions (SYSLIB0051); the Overlord web calls migrated from
+  WebRequest/WebClient to HttpClient (SYSLIB0014, briefly suppressed via `#pragma` before);
+  `LOIC.sln` raised to format 12.00; `LOIC.userprefs` removed.
 - All code and project-file comments in English (including the pre-existing German designer
   comments in `frmEZGrab.Designer.cs`).
 
@@ -46,6 +47,9 @@ Non-interactive runtime test:
   dropped during the build, and is therefore irrelevant.
 - ConfigurationManager (2.7): the `Settings.UpdateSetting`/`ReadSetting` round-trip via
   `OpenExeConfiguration` persists and reads back correctly.
+- Overlord HttpClient paths (SYSLIB0014 migration): verified at runtime under an installed
+  WindowsFormsSynchronizationContext - the GET returns content, the redirect-less HEAD
+  preserves the Location header, and neither call deadlocks (synchronous `HttpClient.Send`).
 
 ### Still open (needs real external connections/interaction)
 
@@ -57,8 +61,6 @@ Non-interactive runtime test:
 
 ### Open/optional
 
-- HttpClient migration instead of WebRequest/WebClient (SYSLIB0014 is currently only
-  suppressed), sensible only once it can be runtime-tested.
 - A real flood run is deliberately not executed against third-party hosts.
 
 ---
