@@ -1,32 +1,33 @@
-# Projektregeln für Claude
+# Project rules for Claude
 
 ## Commits
 
-- Commit-Messages werden **ausschließlich auf Englisch** geschrieben.
-- Kurze, präzise Zusammenfassung in der Betreffzeile, bei Bedarf ein erklärender Body.
+- Commit messages are written **in English only**.
+- Short, precise summary in the subject line, plus an explanatory body when needed.
 
-## Zeichensetzung
+## Punctuation
 
-- **Keine Geviert- oder Halbgeviertstriche** (Em-Dash `—`, En-Dash `–`) verwenden, weder in
-  Texten, Commit-Messages, Code-Kommentaren noch in Dokumentation.
-- Stattdessen normalen Bindestrich, Komma, Doppelpunkt, Klammern oder einen eigenen Satz nutzen.
+- **No em dashes or en dashes** (`—`, `–`), neither in prose, commit messages, code comments
+  nor documentation.
+- Use a regular hyphen, comma, colon, parentheses or a separate sentence instead.
 
-## Code-Kommentare
+## Code comments
 
-- Kommentare im Code (und in Projektdateien wie `.csproj`) werden **immer auf Englisch**
-  geschrieben, unabhängig von der Sprache der übrigen Kommunikation.
+- Comments in code (and in project files such as `.csproj`) are **always written in English**,
+  regardless of the language used in the rest of the communication.
 
-## Deutsche Texte
+## German texts
 
-- In deutschsprachigen Texten (Dokumentation, Chat-Antworten) immer **echte Umlaute
-  und ß** verwenden, keine ASCII-Umschreibungen.
-- Wo nötig umschreiben:
+- In German texts (documentation, chat replies) always use **real umlauts and ß**, never ASCII
+  transliterations.
+- Rewrite where needed:
   - `ae` -> `ä`
   - `oe` -> `ö`
   - `ue` -> `ü`
   - `Ae` -> `Ä`, `Oe` -> `Ö`, `Ue` -> `Ü`
-  - `ss` -> `ß` (nur wo orthografisch korrekt, z. B. `Strasse` -> `Straße`; `dass` bleibt `dass`)
-- Das gilt für Dokumentationsdateien und Chat, **nicht** für Code-Kommentare (die sind Englisch,
-  siehe oben).
-- Ausnahme: Bezeichner, Dateinamen, Konfigurationsschlüssel und Ähnliches bleiben unverändert,
-  wenn Umlaute dort technisch nicht erwünscht sind.
+  - `ss` -> `ß` (only where orthographically correct, e.g. `Strasse` -> `Straße`; `dass` stays
+    `dass`)
+- This applies to documentation files and chat, **not** to code comments (those are English,
+  see above).
+- Exception: identifiers, file names, configuration keys and similar stay unchanged when umlauts
+  are technically undesirable there.
